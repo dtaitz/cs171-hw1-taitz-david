@@ -20,7 +20,7 @@ The colspan attribute of th defines how many columns of the table the header sho
 </ul>
 
 
-<li>What differences do you notice between the DOM inspector and the HTML source? Why would you use the DOM inspector? Why is the HTML source useful?</li>
+3.What differences do you notice between the DOM inspector and the HTML source? Why would you use the DOM inspector? Why is the HTML source useful?</li>
 
 The DOM inspector shows you changes that were made dynamically (like in Javascript/d3), while the HTML source does not. The DOM inspector better shows you which attributes and styles are inherented by eache element in the view source tool. Using the DOM inspector, you can make changes to page dynamically which is powerful but can lead to some confusion because it does not involve any hard coding. 
 
