@@ -1,9 +1,9 @@
 <h1>Intro Answers</h1>
 
 <ol>
-1.If we were interested in understanding summary statistics at a glance (minimum, maximum, etc.), how could you improve the display of the table?
+<li>If we were interested in understanding summary statistics at a glance (minimum, maximum, etc.), how could you improve the display of the table?
 
-<li>the aim was to make summary statistics more accessible, giving the user the ability to sort the columns would help improve the display of the table. Another way a table could do this is to color code the table so that the max and the min are at different ends of the spectrum. Alternatively, one could play with font so that the max would have the biggest font and the min would have the smallest font.</li>
+If the aim was to make summary statistics more accessible, giving the user the ability to sort the columns would help improve the display of the table. Another way a table could do this is to color code the table so that the max and the min are at different ends of the spectrum. Alternatively, one could play with font so that the max would have the biggest font and the min would have the smallest font.</li>
 
 
 <li>Find three varied examples on the web that present tabular data in a different layout or in more visually compelling, complete, interactive or interesting ways</li>
