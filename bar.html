@@ -10,10 +10,24 @@
     text {
         font: 10px sans-serif;
     }
+    #title{
+        width: 100%;
+        text-align: center;
+        font: 28px Tahoma, Arial, Helvetica, clean, sans-serif;
+        font-weight: bold;
+    }
+
   </style>
 </head>
 <body>
+  <label><input type="radio" name="order" value="state"> State</label>
+  <label><input type="radio" name="order" value="rate" checked> Rate</label>
   <script type="text/javascript">
+
+    var table = d3.select("body").append("text")
+    .text("Unemployment Rates for States")
+    .attr("id","title")
+    .style("padding-left","100px")
 
     var margin = {top: 50, bottom: 10, left:300, right: 40};
     var width = 900 - margin.left - margin.right;
@@ -41,6 +55,7 @@
       xScale.domain([min, max]);
       yScale.domain(data.map(state));
 
+      //change group order so text is on top of bar (font)
       var groups = g.append("g")
         .selectAll("g")
         .data(data)
@@ -53,7 +68,104 @@
         .attr("width", function(d) { return xScale(d.Rate); })
         .attr("height", bar_height);
 
-    });
+      //Rate text on bar, place relative x and y
+      groups.append("text")
+        .attr("x", function(d) { return xScale(d.Rate); })
+        .attr("dx","-5")
+        .attr("y", function(d) { return bar_height/2; })
+        .attr("dy","2")
+        .style("text-anchor","end")
+        .text(function(d) { return d.Rate; })
+
+      //State text before bar, place relative x and y, right adjusted
+      groups.append("text")
+        .attr("x", function(d) { return 0; })
+        .attr("dx","-5")
+        .attr("y", function(d) { return bar_height/2; })
+        .attr("dy","2")
+        .style("text-anchor","end")
+        .text(function(d) { return d.State; })      
+
+      //Color range of rate
+      var color = d3.scale.linear()
+        .domain([0, d3.selectAll("g")[0].length-1])
+        .interpolate(d3.interpolateRgb)
+        .range(["orangered", "silver"]);
+
+      var rects = d3.selectAll("rect")
+
+      var reColorScale = function(){
+        rects.style("fill", function(d,i) {
+            return color(i);
+        });
+      }
+
+      reColorScale();
+
+    //Bools to know how radio buttons sort
+    var stateAscending = true;
+    var rateAscending = false;
+
+    //Sort bars
+     var reorder = function(){
+        //Sort States
+        if(d3.select(this).attr("value") == "state"){
+          if(stateAscending == true){
+            data.sort(function(a, b) {
+              return d3.ascending(a.State, b.State);
+            })
+            stateAscending = false;
+          }
+          else if(stateAscending== false){
+            data.sort(function(a, b) {
+              return d3.descending(a.State, b.State);
+            })
+            stateAscending = true;
+          } 
+        }
+        //Sort Rates
+        else if(d3.select(this).attr("value") == "rate"){
+          if(rateAscending== true){
+            data.sort(function(a, b) {
+                if (d3.ascending(a.Rate, b.Rate) == 0){
+                    return d3.ascending(a.State, b.State);
+                }
+                else{
+                  return d3.ascending(a.Rate, b.Rate);
+                };
+            })
+            rateAscending = false;
+          }
+          else if(rateAscending== false){
+            data.sort(function(a, b) {
+                if (d3.descending(a.Rate, b.Rate) == 0){
+                    return d3.descending(a.State, b.State);
+                }
+                else{
+                  return d3.descending(a.Rate, b.Rate);
+                };
+            })
+            rateAscending = true;
+          }
+        }
+
+        //remap scale
+        yScale.domain(data.map(state));
+
+        //Transition animation
+        groups
+         .transition()
+         .duration(750)
+         .delay(function(d, i) { return i * 10; })
+         .attr("transform", function(d, i) { return "translate(0, " + yScale(d.State) +")"; }); 
+
+        };
+
+        //How radio button respond to clicks
+        d3.selectAll("input").on("click", reorder);
+
+  });
+
   </script>
 </body>
 </html>

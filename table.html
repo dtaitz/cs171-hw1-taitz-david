@@ -5,21 +5,118 @@
   <title>CS171 Homework 1</title>
 
   <style type="text/css">
-  /* YOUR CSS */
+
+  .even{
+    background-color: pink;
+  }
+
+  .odd{
+    background-color: white;
+  }
+  
+  body {
+    font: 13px Tahoma, Arial, Helvetica, clean, sans-serif;
+    display:table-row
+  }
+
+  table {
+    border-collapse: collapse;
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
+  }
+
+  thead{
+    border-collapse: collapse;
+    background-color: white
+  }
+
+  caption {
+    text-align: center;
+    font-weight: bold;
+    display:block;
+    width:100%;
+    background-color: white
+  }
+
+  th {
+    text-align: center;
+    font-weight: bold;
+    border: 1px black solid;
+    background-color: white
+  }
+
+  td{
+    text-align: center;
+    border: 1px black solid;
+    vertical-align: middle;
+  }
+
   </style>
 </head>
 <body>
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script>
-  d3.tsv("unemp_states_us_nov_2013.tsv", function(error, data){
 
-      var table = d3.select("body").append("table"),
+  //figure out how to highlight the chart column
+  //Cursor same on Chart and Rate
+
+  d3.text("unemp_states_us_nov_2013.tsv", function(datasetText){
+
+    var parsedTSV = d3.tsv.parseRows(datasetText);
+
+      var headerdata = parsedTSV.shift()
+
+      d3.select("body")
+      .append("h1")
+      .text("Unemployment Rates for States")
+      //.attr("colspan","4");
+
+
+      //add header div tags
+      var table = d3.select("body").append("table")
+      .attr("id","table")
+      thead = table.append("thead")
+      //.style("id","table");
+
+      //Header table caption
+      d3.select("thead")
+      .append("tr")
+      .append("th")
+      .attr("colspan", 4)
+      .append("caption")
+      .html("Unemployment Rates for States <br /> Monthly Rankings <br />  Seasonally Adjusted Dec. 2013p");
+
+      tr = thead.append("tr")
+      .attr("id","tr_ths")
+
+      //input header data
+      var header_columns = tr.selectAll("th")
+      .data(headerdata)
+      .enter()
+      .append("th")
+      .attr("class", function(d,i){ return "colhead_" + i; })
+      .attr("id", "ascending")
+      .text(function(d) { return d; });
+
       tbody = table.append("tbody");
 
       var rows = tbody.selectAll("tr")
-      .data(data)
+      .data(parsedTSV)
       .enter()
       .append("tr");
+
+
+      //Width and height
+      var width = 60;
+      var height = 20;
+
+      d3.select("thead")
+      .select("tr#tr_ths")
+      .append("th")
+      .attr("class", "colhead_3")
+      .attr("id", "ascending")
+      .text("Chart");
 
       var cells = rows.selectAll("td")
       .data(function(row) {
@@ -29,7 +126,180 @@
         })
       .enter()
       .append("td")
+      .attr('class', function(d,i){ return "col_" + i; })
       .text(function(d) { return d; });
+
+      //add chart column
+      rows.insert("td").attr("class","col_4")
+        .append("svg")
+       .attr("width", width)
+       .attr("height", height)
+       .append("rect")
+       .attr("height", height)
+       .attr("width", function(d) { return parseFloat(d[0]); });
+
+      //automatically in ascending order on load
+      var rank_ascending = function(){
+        tbody.selectAll("tr").sort(function(a, b) {
+            if (d3.ascending(parseFloat(a[2]), parseFloat(b[2])) == 0){
+                return d3.ascending(a[1], b[1]);
+            }
+            else{
+              return d3.ascending(parseFloat(a[2]), parseFloat(b[2]));
+            };
+        }).attr("class", reZebra);
+      };
+
+      //create color scale
+      var color = d3.scale.linear()
+        .domain([0, tbody.selectAll("tr")[0].length-1])
+        .interpolate(d3.interpolateRgb)
+        .range(["orangered", "silver"]);
+
+
+      var rate_cells = d3.selectAll("td.col_" + 2)
+
+      var reRateScale = function(){
+        rate_cells.style("background-color", function(d,i) {
+            return color(i);
+        });
+      }
+
+      //initial color scale loaded
+      reRateScale();
+
+
+
+      var new_header_columns = tr.selectAll("th")
+      //Make Columns Ascending
+      new_header_columns.on("click", function(d,i) {
+        //Sort State Column Ascending Alphabetically
+        if (d3.select(this).attr("class") == "colhead_" + 1 && d3.select(this).attr("id") == "descending"){
+            d3.select(this).attr("id","ascending")
+            tbody.selectAll("tr").sort(function(a, b) {
+            return d3.ascending(a[1], b[1]);
+            //switch to ascending
+         }).attr("class", reZebra);
+        }
+        //State Column Descending Alphabetically
+        else if (d3.select(this).attr("class") == "colhead_" + 1 && d3.select(this).attr("id") == "ascending"){
+            d3.select(this).attr("id","descending")
+            tbody.selectAll("tr").sort(function(a, b) {
+            return d3.descending(a[1], b[1]);
+            //switch descending
+          }).attr("class", reZebra);  
+        }
+        //Rate Column Ascending
+        else if (d3.select(this).attr("class") == "colhead_" + 2 && d3.select(this).attr("id") == "descending"){
+            d3.select(this).attr("id","ascending")
+            rank_ascending();
+            reRateScale();
+        }
+       else if (d3.select(this).attr("class") == "colhead_" + 2 && d3.select(this).attr("id") == "ascending"){
+            d3.select(this).attr("id","descending")
+            tbody.selectAll("tr").sort(function(a, b) {
+            if (d3.descending(parseFloat(a[2]), parseFloat(b[2])) == 0){
+                return d3.descending(a[1], b[1]);
+                //switch to descending
+            }
+            else{
+              return d3.descending(parseFloat(a[2]), parseFloat(b[2]));
+              //switch to descending
+            }
+         }).attr("class", reZebra);
+            reRateScale();
+        }
+        //Chart Column Ascending
+        else if (d3.select(this).attr("class") == "colhead_" + 3 && d3.select(this).attr("id") == "descending"){
+            d3.select(this).attr("id","ascending")
+            rank_ascending();
+            reRateScale();
+        }
+        //Chart Column Descending
+        else if (d3.select(this).attr("class") == "colhead_" + 3 && d3.select(this).attr("id") == "ascending"){
+            d3.select(this).attr("id","descending")
+            tbody.selectAll("tr").sort(function(a, b) {
+            if (d3.descending(parseFloat(a[2]), parseFloat(b[2])) == 0){
+                return d3.descending(a[1], b[1]);
+                //switch to descending
+            }
+            else{
+              return d3.descending(parseFloat(a[2]), parseFloat(b[2]));
+              //switch to descending
+            }
+         }).attr("class", reZebra);
+            reRateScale();
+        }
+
+
+      });
+    
+    //UP AND DOWN CURSORS
+     new_header_columns.on("mouseover", function() {
+        if (d3.select(this).attr("class") == "colhead_" + 1 && d3.select(this).attr("id") == "ascending"){
+            d3.select(this).style("cursor","n-resize");
+          } 
+        else if (d3.select(this).attr("class") == "colhead_" + 1 && d3.select(this).attr("id") == "descending"){
+            d3.select(this).style("cursor","s-resize");
+          }
+        else if (d3.select(this).attr("class") == "colhead_" + 2 && d3.select(this).attr("id") == "ascending"){
+            d3.select(this).style("cursor","n-resize");
+            //d3.select(th.colhead_3).style("cursor","n-resize");
+          } 
+        else if (d3.select(this).attr("class") == "colhead_" + 2 && d3.select(this).attr("id") == "descending"){
+            d3.select(this).style("cursor","s-resize");
+            //d3.select(th.colhead_3).style("cursor","s-resize");
+          }
+        else if (d3.select(this).attr("class") == "colhead_" + 3 && d3.select(this).attr("id") == "ascending"){
+            d3.select(this).style("cursor","n-resize");
+            //d3.select(th.colhead_2).style("cursor","n-resize");
+          } 
+        else if (d3.select(this).attr("class") == "colhead_" + 3 && d3.select(this).attr("id") == "descending"){
+            d3.select(this).style("cursor","s-resize");
+            //d3.select(th.colhead_2).style("cursor","s-resize"); 
+          } 
+        }); 
+      
+      //highlighting
+      var zebra = tbody.selectAll("tr")
+      zebra.on("mouseover", function() {
+          d3.select(this)
+          .style("background-color","yellow")
+        });
+      var cells_4 = rows.selectAll("td")
+      .on("mouseover", function(d,i){
+          d3.selectAll("td.col_" + i)
+          .style("background-color", "yellow");
+      })
+      //TURNING OFF HIGHLIGHTING
+      zebra.on("mouseout", function() {
+        d3.select(this)
+        .style("background-color", function(d,i) {
+          return d.color;
+        })
+        reRateScale();
+       }); 
+      cells_4.on("mouseout", function(d,i){
+          d3.selectAll("td.col_" + i)
+          .style("background-color", function(d,i) {
+          return d.color;
+         })
+         reRateScale();
+      });
+
+      zebra.attr("class", function(d,i) {return reZebra(d,i)});
+
+      function reZebra(d, i) {
+         if (i % 2 ==0){
+            return "even";
+            }
+          else {
+            return "odd";
+          }
+        };
+
+
+
       });
   </script>
 </body>
