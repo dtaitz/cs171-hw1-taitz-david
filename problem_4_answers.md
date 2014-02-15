@@ -1,6 +1,6 @@
 <h1>Problem 4 Answers</h1>
 
-<ul>
+<ol>
 <li> The domain() function is the data range upon which the scale is calculated. What does d3.selectAll("tbody tr")[0].length-1 mean?</li>
 
 This is the upper limit of the the data range upon which the scale is calculated, which is calculated by taking the "length" or number of elements in the array of rank values. It is the number of elements in the array of rank values minus one because arrays are indexed starting at 0. 
@@ -13,4 +13,4 @@ Color(0) function call returns orangered as it is the lower limit of this scale.
 
 If the array passed to domain() was both the minimum and maximum rate values, the scale would not be as evenly distributed as it currently is. This is because the distribution appears normal and the difference betweeen adjacent ranks is not even throughout the set. If the steps between values were evenly distributed, it would make sense to pass the min and max values to domain().
 
-</ul>
+</ol>
